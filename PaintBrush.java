@@ -20,8 +20,7 @@ public class PaintBrush extends JFrame {
     boolean isDragged, isDotted, isFilled;
     SelectedDrawingOption selectedDrawingOption;
     BufferedImage canvasImage;
-    ArrayList<PaintAction> actionsList;
-
+    
     public PaintBrush() {
         setTitle("Paint App");
         setSize(1400, 800);
@@ -56,41 +55,17 @@ public class PaintBrush extends JFrame {
         buttonPanel.setBounds(1205, 0, 190, 760);
         buttonPanel.setBackground(Color.LIGHT_GRAY);
 
-        redButton = createButton(Color.RED);
-        greenButton = createButton(Color.GREEN);
-        blueButton = createButton(Color.BLUE);
-        yellowButton = createButton(Color.YELLOW);
-        blackButton = createButton(Color.BLACK);
-        cyanButton = createButton(Color.CYAN);
-
         rectangleButton = createButton("Rectangle");
         ovalButton = createButton("Oval");
         lineButton = createButton("Line");
         freehandButton = createButton("Free Hand");
         eraserButton = createButton("Eraser");
-        clearButton = createButton("Clear All");
         undoButton = createButton("Undo");
         saveButton = createButton("Save");
         loadImageBtn = createButton("Load Image");
 
         dottedCheckbox = createCheckbox("Dotted");
         filledCheckbox = createCheckbox("Filled");
-
-        loadImageBtn.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent ev) {
-                JFileChooser fileChooser = new JFileChooser();
-                int result = fileChooser.showOpenDialog(null);
-                if (result == JFileChooser.APPROVE_OPTION) {
-                    File selectedFile = fileChooser.getSelectedFile();
-                    try {
-                        canvasImage = ImageIO.read(selectedFile);
-                        canvasPanel.repaint();
-                    } catch (IOException ex) {
-                        ex.printStackTrace();
-                    }
-                }
-            }
-        });
 
         buttonPanel.setLayout(new GridLayout(0, 1, 5, 5));
         buttonPanel.add(redButton);
@@ -118,7 +93,6 @@ public class PaintBrush extends JFrame {
     private JButton createButton(Color color) {
         JButton button = new JButton();
         button.setBackground(color);
-        button.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ev) {
                 currentColor = color;
             }
@@ -169,19 +143,6 @@ public class PaintBrush extends JFrame {
             canvasImage = new BufferedImage(canvasPanel.getWidth(), canvasPanel.getHeight(), BufferedImage.TYPE_INT_RGB);
         }
     }
-    
-    // ** The image is saved in the place of the project **
-    public void saveImage(String name, String type) {
-        BufferedImage image = new BufferedImage(canvasPanel.getWidth(), canvasPanel.getHeight(), BufferedImage.TYPE_INT_RGB);
-        Graphics2D g2 = image.createGraphics();
-        canvasPanel.paint(g2); 
-        g2.dispose();
-        try {
-            ImageIO.write(image, type, new File(name + "." + type));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 
     private JCheckBox createCheckbox(String label) {
         JCheckBox checkBox = new JCheckBox(label);
@@ -212,7 +173,6 @@ public class PaintBrush extends JFrame {
         public void mouseReleased(MouseEvent e) {
             endPoint = e.getPoint();
             Graphics2D g2d = (Graphics2D) canvasPanel.getGraphics();
-            g2d.setColor(currentColor);
             Stroke oldStroke = g2d.getStroke();
             PaintAction action = new PaintAction(startPoint, endPoint, currentColor, selectedDrawingOption, isDotted, isFilled);
             actionsList.add(action); 
@@ -253,7 +213,6 @@ public class PaintBrush extends JFrame {
             else if (selectedDrawingOption == SelectedDrawingOption.LINE) {
                 if (isDotted) {
                     g2d.setStroke(new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[]{9}, 0));
-                    g2d.drawLine(startPoint.x, startPoint.y, endPoint.x, endPoint.y);
                 } 
                 else {
                     g2d.drawLine(startPoint.x, startPoint.y, endPoint.x, endPoint.y);
@@ -302,7 +261,6 @@ public class PaintBrush extends JFrame {
             if (action.drawingOption == SelectedDrawingOption.RECTANGLE) {
                 int x = Math.min(action.startPoint.x, action.endPoint.x);
                 int y = Math.min(action.startPoint.y, action.endPoint.y);
-                int width = Math.abs(action.startPoint.x - action.endPoint.x);
                 int height = Math.abs(action.startPoint.y - action.endPoint.y);
                 if (action.isFilled)
                     g2d.fillRect(x, y, width, height);
@@ -318,14 +276,12 @@ public class PaintBrush extends JFrame {
             else if (action.drawingOption == SelectedDrawingOption.OVAL) {
                 int x = Math.min(action.startPoint.x, action.endPoint.x);
                 int y = Math.min(action.startPoint.y, action.endPoint.y);
-                int width = Math.abs(action.startPoint.x - action.endPoint.x);
                 int height = Math.abs(action.startPoint.y - action.endPoint.y);
                 if (action.isFilled)
                     g2d.fillOval(x, y, width, height);
                 else {
                     if (action.isDotted) {
                         g2d.setStroke(new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[]{9}, 0));
-                        g2d.drawOval(x, y, width, height);
                     } else {
                         g2d.drawOval(x, y, width, height);
                     }
@@ -333,7 +289,6 @@ public class PaintBrush extends JFrame {
             } 
             else if (action.drawingOption == SelectedDrawingOption.LINE) {
                 if (action.isDotted) {
-                    g2d.setStroke(new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[]{9}, 0));
                     g2d.drawLine(action.startPoint.x, action.startPoint.y, action.endPoint.x, action.endPoint.y);
                 } else {
                     g2d.drawLine(action.startPoint.x, action.startPoint.y, action.endPoint.x, action.endPoint.y);
